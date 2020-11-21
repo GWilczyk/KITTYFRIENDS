@@ -1,49 +1,45 @@
 import './App.css';
 
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import CardList from '../components/CardList';
 import ErrorBoundry from '../components/ErrorBoundry';
 import SearchBox from '../components/SearchBox';
 import Scroll from '../components/Scroll';
 
-class App extends Component {
-	constructor() {
-		super();
-		this.state = {
-			robots: [],
-			searchfield: ''
-		};
-	}
+const App = () => {
+	const [kitties, setKitties] = useState([]);
+	const [searchField, setSearchField] = useState('');
 
-	componentDidMount() {
-		fetch('https://jsonplaceholder.typicode.com/users')
-			.then(response => response.json())
-			.then(users => this.setState({ robots: users }));
-	}
+	useEffect(() => {
+		async function fetchUsers() {
+			const usersPromise = await fetch(
+				'https://jsonplaceholder.typicode.com/users'
+			);
+			const users = await usersPromise.json();
+			setKitties(users);
+		}
+		fetchUsers();
+	}, []);
 
-	onSearchChange = event => {
-		this.setState({ searchfield: event.target.value });
-	};
+	const onSearchChange = event => setSearchField(event.target.value);
 
-	render() {
-		const { robots, searchfield } = this.state;
-		const filteredRobots = robots.filter(robot =>
-			robot.name.toLowerCase().includes(searchfield.toLowerCase())
-		);
-		return !robots.length ? (
-			<h1>Loading…</h1>
-		) : (
-			<div className='tc'>
-				<h1 className='f1'>Kittyfriends</h1>
-				<SearchBox searchChange={this.onSearchChange} />
-				<Scroll>
-					<ErrorBoundry>
-						<CardList robots={filteredRobots} />
-					</ErrorBoundry>
-				</Scroll>
-			</div>
-		);
-	}
-}
+	const filteredKitties = kitties.filter(kitty =>
+		kitty.name.toLowerCase().includes(searchField.toLowerCase())
+	);
+
+	return !kitties.length ? (
+		<h1>Loading…</h1>
+	) : (
+		<div className='tc'>
+			<h1 className='f1'>Kittyfriends</h1>
+			<SearchBox searchChange={onSearchChange} />
+			<Scroll>
+				<ErrorBoundry>
+					<CardList kitties={filteredKitties} />
+				</ErrorBoundry>
+			</Scroll>
+		</div>
+	);
+};
 
 export default App;
